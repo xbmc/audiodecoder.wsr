@@ -12,4 +12,4 @@ set(SOURCES nec/nec.c
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
-add_library(in_wsr STATIC ${SOURCES})
+add_library(in_wsr SHARED ${SOURCES})

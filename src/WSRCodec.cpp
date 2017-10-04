@@ -17,102 +17,18 @@
  *
  */
 
-#include "libXBMC_addon.h"
+#include <kodi/addon-instance/AudioDecoder.h>
+#include <kodi/Filesystem.h>
+#include <kodi/General.h>
+#include <kodi/tools/DllHelper.h>
 #include <iostream>
+#include <p8-platform/util/StringUtils.h>
 
 extern "C" {
 #include "wsr_player.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <memory.h>
-
-#include "kodi_audiodec_dll.h"
-
-ADDON::CHelper_libXBMC_addon *XBMC           = NULL;
-
-short* sample_buffer=NULL;
-
-ADDON_STATUS ADDON_Create(void* hdl, void* props)
-{
-  if (!XBMC)
-    XBMC = new ADDON::CHelper_libXBMC_addon;
-
-  if (!XBMC->RegisterMe(hdl))
-  {
-    delete XBMC, XBMC=NULL;
-    return ADDON_STATUS_PERMANENT_FAILURE;
-  }
-
-  return ADDON_STATUS_OK;
-}
-
-//-- Stop ---------------------------------------------------------------------
-// This dll must cease all runtime activities
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-void ADDON_Stop()
-{
-}
-
-//-- Destroy ------------------------------------------------------------------
-// Do everything before unload of this add-on
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-void ADDON_Destroy()
-{
-}
-
-//-- HasSettings --------------------------------------------------------------
-// Returns true if this add-on use settings
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-bool ADDON_HasSettings()
-{
-  return false;
-}
-
-//-- GetStatus ---------------------------------------------------------------
-// Returns the current Status of this visualisation
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-ADDON_STATUS ADDON_GetStatus()
-{
-  return ADDON_STATUS_OK;
-}
-
-//-- GetSettings --------------------------------------------------------------
-// Return the settings for XBMC to display
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-unsigned int ADDON_GetSettings(ADDON_StructSetting ***sSet)
-{
-  return 0;
-}
-
-//-- FreeSettings --------------------------------------------------------------
-// Free the settings struct passed from XBMC
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-
-void ADDON_FreeSettings()
-{
-}
-
-//-- SetSetting ---------------------------------------------------------------
-// Set a specific Setting value (called from XBMC)
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void* value)
-{
-  return ADDON_STATUS_OK;
-}
-
-//-- Announce -----------------------------------------------------------------
-// Receive announcements from XBMC
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-void ADDON_Announce(const char *flag, const char *sender, const char *message, const void *data)
-{
 }
 
 struct WSRContext
@@ -122,116 +38,189 @@ struct WSRContext
   uint64_t timepos;
 };
 
-int Load_WSR(const char *name)
+class CMyAddon;
+
+class CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
+                  private CDllHelper
 {
-  if (ROM) { free(ROM); ROM = NULL; }
-
-  void* f = XBMC->OpenFile(name, 0);
-  if (!f)
-    return 0;
-
-  ROMSize = XBMC->GetFileLength(f);
-  ROMBank = (ROMSize+0xFFFF)>>16;
-  ROM = (BYTE*)malloc(ROMBank*0x10000);
-  if (!ROM) { 
-    XBMC->CloseFile(f);
-    return 0;
-  }
-  XBMC->ReadFile(f, ROM, ROMSize);
-  XBMC->CloseFile(f);
-
-  Init_WSR();
-
-  return 1;
-}
-
-
-void* Init(const char* strFile, unsigned int filecache, int* channels,
-           int* samplerate, int* bitspersample, int64_t* totaltime,
-           int* bitrate, AEDataFormat* format, const AEChannel** channelinfo)
-{
-  WSRContext* result = new WSRContext;
-  result->pos = 576*2;
-  result->timepos = 0;
-
-  int track=0;
-  std::string toLoad(strFile);
-  if (toLoad.find(".wsrstream") != std::string::npos)
+public:
+  CWSRCodec(KODI_HANDLE instance, CMyAddon* addon, bool useChild) :
+    CInstanceAudioDecoder(instance),
+    m_addon(addon), m_useChild(useChild)
   {
-    size_t iStart=toLoad.rfind('-') + 1;
-    track = atoi(toLoad.substr(iStart, toLoad.size()-iStart-10).c_str())-1;
-    //  The directory we are in, is the file
-    //  that contains the bitstream to play,
-    //  so extract it
-    size_t slash = toLoad.rfind('\\');
-    if (slash == std::string::npos)
-      slash = toLoad.rfind('/');
-    toLoad = toLoad.substr(0, slash);
+    if (m_useChild)
+    {
+      std::string source = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
+      m_usedLibName = kodi::GetTempAddonPath(StringUtils::Format("%sin_wsr-%p%s", LIBRARY_PREFIX, this, LIBRARY_SUFFIX));
+      if (!kodi::vfs::CopyFile(source, m_usedLibName))
+      {
+        kodi::Log(ADDON_LOG_ERROR, "Failed to create in_wsr copy");
+        return;
+      }
+    }
+    else
+      m_usedLibName = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
   }
 
-  if (!Load_WSR(toLoad.c_str())) {
-    delete result;
-    return NULL;
+  virtual ~CWSRCodec()
+  {
   }
 
-  static enum AEChannel map[3] = {
-    AE_CH_FL, AE_CH_FR, AE_CH_NULL
-  };
-  *format = AE_FMT_S16NE;
-  *channelinfo = map;
-  *channels = 2;
-  *bitspersample = 16;
-  *samplerate = 48000;
-  *totaltime = 5*60*1000; // 5 minutes
-  *bitrate = 0;
-  Reset_WSR(track);
+  virtual bool Init(const std::string& filename, unsigned int filecache,
+                    int& channels, int& samplerate,
+                    int& bitspersample, int64_t& totaltime,
+                    int& bitrate, AEDataFormat& format,
+                    std::vector<AEChannel>& channellist) override
+  {
+    if (!LoadDll(m_usedLibName)) return false;
+    if (!REGISTER_DLL_SYMBOL(Init_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Reset_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Update_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Get_FirstSong)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROM)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROMSize)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROMBank)) return false;
+    if (!REGISTER_DLL_SYMBOL(sample_buffer)) return false;
 
-  return result;
-}
+    ctx.pos = 576*2;
+    ctx.timepos = 0;
 
-int ReadPCM(void* context, uint8_t* pBuffer, int size, int *actualsize)
-{
-  WSRContext* wsr = (WSRContext*)context;
-  if (wsr->timepos >= 5*60*48000*2)
-    return 1;
+    int track=0;
+    std::string toLoad(filename);
+    if (toLoad.find(".wsrstream") != std::string::npos)
+    {
+      size_t iStart=toLoad.rfind('-') + 1;
+      track = atoi(toLoad.substr(iStart, toLoad.size()-iStart-10).c_str())-1;
+      //  The directory we are in, is the file
+      //  that contains the bitstream to play,
+      //  so extract it
+      size_t slash = toLoad.rfind('\\');
+      if (slash == std::string::npos)
+        slash = toLoad.rfind('/');
+      toLoad = toLoad.substr(0, slash);
+    }
 
-  if (wsr->pos == 576*2) {
-    sample_buffer = wsr->sample_buffer;
-    Update_WSR(40157, 576);
-    wsr->pos = 0;
+    if (!Load_WSR(toLoad.c_str()))
+      return false;
+
+    format = AE_FMT_S16NE;
+    channellist = { AE_CH_FL, AE_CH_FR };
+    channels = 2;
+    bitspersample = 16;
+    samplerate = 48000;
+    totaltime = 5*60*1000; // 5 minutes
+    bitrate = 0;
+    Reset_WSR(track);
+
+    return true;
   }
 
-  size_t tocopy = std::min((size_t)size, (576U*2-wsr->pos)*2);
-  memcpy(pBuffer, wsr->sample_buffer+wsr->pos, tocopy);
-  wsr->pos += tocopy/2;
-  wsr->timepos += tocopy/2;
-  *actualsize = tocopy;
+  virtual int ReadPCM(uint8_t* buffer, int size, int& actualsize) override
+  {
+    if (ctx.timepos >= 5*60*48000*2)
+      return 1;
 
-  return 0;
-}
+    if (ctx.pos == 576*2) {
+      *sample_buffer = ctx.sample_buffer;
+      Update_WSR(40157, 576);
+      ctx.pos = 0;
+    }
 
-int64_t Seek(void* context, int64_t time)
-{
-  return -1;
-}
+    size_t tocopy = std::min((size_t)size, (576U*2-ctx.pos)*2);
+    memcpy(buffer, ctx.sample_buffer+ctx.pos, tocopy);
+    ctx.pos += tocopy/2;
+    ctx.timepos += tocopy/2;
+    actualsize = tocopy;
 
-bool DeInit(void* context)
-{
-  return true;
-}
-
-bool ReadTag(const char* strFile, char* title, char* artist, int* length)
-{
-  strcpy(title,"title");
-  strcpy(artist,"artist");
-  *length = 5*60;
-  return true;
-}
-
-int TrackCount(const char* strFile)
-{
-  if (!Load_WSR(strFile))
     return 0;
-  return 255-Get_FirstSong();
-}
-}
+  }
+
+  virtual int64_t Seek(int64_t time) override
+  {
+    return -1;
+  }
+
+  virtual int TrackCount(const std::string& fileName) override
+  {
+    if (fileName.find(".wsrstream") != std::string::npos)
+      return 0;
+
+    if (!LoadDll(m_usedLibName)) return false;
+    if (!REGISTER_DLL_SYMBOL(Init_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Reset_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Update_WSR)) return false;
+    if (!REGISTER_DLL_SYMBOL(Get_FirstSong)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROM)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROMSize)) return false;
+    if (!REGISTER_DLL_SYMBOL(ROMBank)) return false;
+    if (!REGISTER_DLL_SYMBOL(sample_buffer)) return false;
+
+    if (!Load_WSR(fileName.c_str()))
+      return 0;
+    return 255-Get_FirstSong();
+  }
+
+private:
+  int Load_WSR(const char *name)
+  {
+    kodi::vfs::CFile file;
+    if (!file.OpenFile(name, 0))
+      return 0;
+
+    *ROMSize = file.GetLength();
+    *ROMBank = (*ROMSize+0xFFFF)>>16;
+    *ROM = (BYTE*)malloc(*ROMBank*0x10000);
+    if (!*ROM)
+    {
+      file.Close();
+      return 0;
+    }
+    file.Read(*ROM, *ROMSize);
+    file.Close();
+
+    Init_WSR();
+
+    return 1;
+  }
+
+  WSRContext ctx;
+  CMyAddon* m_addon;
+  bool m_useChild;
+  std::string m_usedLibName;
+
+  void (*Init_WSR)();
+  void (*Reset_WSR)(int SongNo);
+  void (*Update_WSR)(int cycles, int Length);
+  int (*Get_FirstSong)();
+  unsigned char** ROM;
+  int* ROMSize;
+  int* ROMBank;
+  short** sample_buffer;
+};
+
+
+class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
+{
+public:
+  CMyAddon() : m_usedAmount(0) { }
+  virtual ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
+  {
+    addonInstance = new CWSRCodec(instance, this, ++m_usedAmount > 1);
+    return ADDON_STATUS_OK;
+  }
+
+  void DecreaseUsedAmount()
+  {
+    if (m_usedAmount > 0)
+      --m_usedAmount;
+  }
+
+  virtual ~CMyAddon()
+  {
+  }
+private:
+  int m_usedAmount;
+};
+
+
+ADDONCREATOR(CMyAddon)

@@ -8,7 +8,7 @@
 #include "wsr_player.h"
 #include <stdlib.h>
 
-extern short* sample_buffer;
+short* sample_buffer;
 
 int SampleRate = 48000;
 
