@@ -10,6 +10,4 @@ set(SOURCES nec/nec.c
             ws_memory.c
             wsr_player.c)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-
 add_library(in_wsr SHARED ${SOURCES})
