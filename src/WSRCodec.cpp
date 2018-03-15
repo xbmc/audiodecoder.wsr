@@ -21,6 +21,7 @@
 #include <kodi/Filesystem.h>
 #include <kodi/General.h>
 #include <kodi/tools/DllHelper.h>
+#include <algorithm>
 #include <iostream>
 #include <p8-platform/util/StringUtils.h>
 
