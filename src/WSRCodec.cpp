@@ -63,15 +63,13 @@ public:
       m_usedLibName = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
   }
 
-  virtual ~CWSRCodec()
-  {
-  }
+  virtual ~CWSRCodec() = default;
 
-  virtual bool Init(const std::string& filename, unsigned int filecache,
-                    int& channels, int& samplerate,
-                    int& bitspersample, int64_t& totaltime,
-                    int& bitrate, AEDataFormat& format,
-                    std::vector<AEChannel>& channellist) override
+  bool Init(const std::string& filename, unsigned int filecache,
+            int& channels, int& samplerate,
+            int& bitspersample, int64_t& totaltime,
+            int& bitrate, AEDataFormat& format,
+            std::vector<AEChannel>& channellist) override
   {
     if (!LoadDll(m_usedLibName)) return false;
     if (!REGISTER_DLL_SYMBOL(Init_WSR)) return false;
@@ -116,7 +114,7 @@ public:
     return true;
   }
 
-  virtual int ReadPCM(uint8_t* buffer, int size, int& actualsize) override
+  int ReadPCM(uint8_t* buffer, int size, int& actualsize) override
   {
     if (ctx.timepos >= 5*60*48000*2)
       return 1;
@@ -136,12 +134,12 @@ public:
     return 0;
   }
 
-  virtual int64_t Seek(int64_t time) override
+  int64_t Seek(int64_t time) override
   {
     return -1;
   }
 
-  virtual int TrackCount(const std::string& fileName) override
+  int TrackCount(const std::string& fileName) override
   {
     if (fileName.find(".wsrstream") != std::string::npos)
       return 0;
@@ -203,8 +201,8 @@ private:
 class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
 {
 public:
-  CMyAddon() : m_usedAmount(0) { }
-  virtual ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
+  CMyAddon() = default;
+  ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
   {
     addonInstance = new CWSRCodec(instance, this, ++m_usedAmount > 1);
     return ADDON_STATUS_OK;
@@ -216,11 +214,10 @@ public:
       --m_usedAmount;
   }
 
-  virtual ~CMyAddon()
-  {
-  }
+  virtual ~CMyAddon() = default;
+
 private:
-  int m_usedAmount;
+  int m_usedAmount = 0;
 };
 
 
