@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="audiodecoder.wsr"
-  version="2.1.0"
+  version="2.1.1"
   name="WSR Audio Decoder"
   provider-name="spiff">
   <requires>@ADDON_DEPENDS@</requires>
@@ -12,8 +12,8 @@
     tracks="true"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">WSR Audio Decoder</summary>
-    <description lang="en">WSR Audio Decoder</description>
+    <summary lang="en">WonderSwan R Audio Decoder</summary>
+    <description lang="en">WonderSwan R (WSR) is a container format, that holds audio code ripped from the ROMs of games for the WonderSwan and WonderSwan Color handheld game system. Both the original and color versions used the same audio chip which could handle 4 PCM audio channels.</description>
     <platform>@PLATFORM@</platform>
   </extension>
 </addon>
