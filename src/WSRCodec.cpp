@@ -25,7 +25,7 @@
 #include <iostream>
 
 extern "C" {
-#include "wsr_player.h"
+#include "in_wsr/wsr_player.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <memory.h>
