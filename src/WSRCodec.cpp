@@ -23,10 +23,9 @@
 #include <kodi/tools/DllHelper.h>
 #include <algorithm>
 #include <iostream>
-#include <p8-platform/util/StringUtils.h>
 
 extern "C" {
-#include "wsr_player.h"
+#include "in_wsr/wsr_player.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <memory.h>
@@ -45,22 +44,9 @@ class CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
                   private CDllHelper
 {
 public:
-  CWSRCodec(KODI_HANDLE instance, CMyAddon* addon, bool useChild) :
-    CInstanceAudioDecoder(instance),
-    m_addon(addon), m_useChild(useChild)
+  CWSRCodec(KODI_HANDLE instance) :
+    CInstanceAudioDecoder(instance)
   {
-    if (m_useChild)
-    {
-      std::string source = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
-      m_usedLibName = kodi::GetTempAddonPath(StringUtils::Format("%sin_wsr-%p%s", LIBRARY_PREFIX, this, LIBRARY_SUFFIX));
-      if (!kodi::vfs::CopyFile(source, m_usedLibName))
-      {
-        kodi::Log(ADDON_LOG_ERROR, "Failed to create in_wsr copy");
-        return;
-      }
-    }
-    else
-      m_usedLibName = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
   }
 
   virtual ~CWSRCodec() = default;
@@ -71,7 +57,10 @@ public:
             int& bitrate, AEDataFormat& format,
             std::vector<AEChannel>& channellist) override
   {
-    if (!LoadDll(m_usedLibName)) return false;
+    m_usedLib = !m_usedLib;
+    std::string source = kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_") + std::to_string(m_usedLib) + LIBRARY_SUFFIX);
+
+    if (!LoadDll(source)) return false;
     if (!REGISTER_DLL_SYMBOL(Init_WSR)) return false;
     if (!REGISTER_DLL_SYMBOL(Reset_WSR)) return false;
     if (!REGISTER_DLL_SYMBOL(Update_WSR)) return false;
@@ -144,7 +133,9 @@ public:
     if (fileName.find(".wsrstream") != std::string::npos)
       return 0;
 
-    if (!LoadDll(m_usedLibName)) return false;
+    std::string source = kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
+
+    if (!LoadDll(source)) return false;
     if (!REGISTER_DLL_SYMBOL(Init_WSR)) return false;
     if (!REGISTER_DLL_SYMBOL(Reset_WSR)) return false;
     if (!REGISTER_DLL_SYMBOL(Update_WSR)) return false;
@@ -183,9 +174,6 @@ private:
   }
 
   WSRContext ctx;
-  CMyAddon* m_addon;
-  bool m_useChild;
-  std::string m_usedLibName;
 
   void (*Init_WSR)();
   void (*Reset_WSR)(int SongNo);
@@ -195,7 +183,11 @@ private:
   int* ROMSize;
   int* ROMBank;
   short** sample_buffer;
+
+  static unsigned int m_usedLib;
 };
+
+unsigned int CWSRCodec::m_usedLib = 0;
 
 
 class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
@@ -204,20 +196,10 @@ public:
   CMyAddon() = default;
   ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
   {
-    addonInstance = new CWSRCodec(instance, this, ++m_usedAmount > 1);
+    addonInstance = new CWSRCodec(instance);
     return ADDON_STATUS_OK;
   }
-
-  void DecreaseUsedAmount()
-  {
-    if (m_usedAmount > 0)
-      --m_usedAmount;
-  }
-
   virtual ~CMyAddon() = default;
-
-private:
-  int m_usedAmount = 0;
 };
 
 
