@@ -17,7 +17,7 @@ set(WSR_SOURCES src/WSRCodec.cpp)
 add_definitions(-DLIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
                 -DLIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-set(WSR_ADDITIONAL_BINARY $<TARGET_FILE:in_wsr>)
+set(WSR_ADDITIONAL_BINARY $<TARGET_FILE:in_wsr_track> $<TARGET_FILE:in_wsr_0> $<TARGET_FILE:in_wsr_1>)
 
 if(WIN32)
   find_package(dlfcn-win32 REQUIRED)

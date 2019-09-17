@@ -7,4 +7,6 @@ set(SOURCES nec/nec.c
             ws_memory.c
             wsr_player.c)
 
-add_library(in_wsr SHARED ${SOURCES})
+add_library(in_wsr_0 SHARED ${SOURCES})
+add_library(in_wsr_1 SHARED ${SOURCES})
+add_library(in_wsr_track SHARED ${SOURCES})
