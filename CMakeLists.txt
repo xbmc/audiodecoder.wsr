@@ -4,12 +4,10 @@ project(audiodecoder.wsr)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 
 find_package(Kodi REQUIRED)
-find_package(p8-platform REQUIRED)
 
 include(ExternalProject)
 
 include_directories(${KODI_INCLUDE_DIR}/..
-                    ${p8platform_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}/lib/in_wsr)
 
 add_subdirectory(lib/in_wsr)
@@ -21,7 +19,12 @@ add_definitions(-DLIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
 
 set(WSR_ADDITIONAL_BINARY $<TARGET_FILE:in_wsr>)
 
-set(DEPLIBS ${p8-platform_LIBRARIES})
+if(WIN32)
+  find_package(dlfcn-win32 REQUIRED)
+  list(APPEND DEPLIBS ${dlfcn-win32_LIBRARIES})
+  include_directories(${dlfcn-win32_INCLUDE_DIRS})
+  add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+endif()
 
 build_addon(audiodecoder.wsr WSR DEPLIBS)
 

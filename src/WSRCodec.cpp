@@ -23,7 +23,6 @@
 #include <kodi/tools/DllHelper.h>
 #include <algorithm>
 #include <iostream>
-#include <p8-platform/util/StringUtils.h>
 
 extern "C" {
 #include "wsr_player.h"
@@ -49,18 +48,19 @@ public:
     CInstanceAudioDecoder(instance),
     m_addon(addon), m_useChild(useChild)
   {
+    std::string source = kodi::GetAddonPath(LIBRARY_PREFIX "in_wsr" LIBRARY_SUFFIX);
     if (m_useChild)
     {
-      std::string source = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
-      m_usedLibName = kodi::GetTempAddonPath(StringUtils::Format("%sin_wsr-%p%s", LIBRARY_PREFIX, this, LIBRARY_SUFFIX));
-      if (!kodi::vfs::CopyFile(source, m_usedLibName))
+      char buffer[50];
+      snprintf(buffer, 50, "%sin_wsr-%p%s", LIBRARY_PREFIX, this, LIBRARY_SUFFIX);
+      if (!kodi::vfs::CopyFile(source, buffer))
       {
         kodi::Log(ADDON_LOG_ERROR, "Failed to create in_wsr copy");
         return;
       }
     }
     else
-      m_usedLibName = kodi::GetAddonPath(StringUtils::Format("%sin_wsr%s", LIBRARY_PREFIX, LIBRARY_SUFFIX));
+      m_usedLibName = source;
   }
 
   virtual ~CWSRCodec() = default;
