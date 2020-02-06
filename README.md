@@ -3,7 +3,8 @@
 This is a [Kodi](https://kodi.tv) audio decoder addon for WSR files.
 
 [![Build Status](https://travis-ci.org/xbmc/audiodecoder.wsr.svg?branch=Matrix)](https://travis-ci.org/xbmc/audiodecoder.wsr/branches)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/audiodecoder.wsr?branch=Matrix&svg=true)](https://ci.appveyor.com/project/xbmc/audiodecoder-wsr?branch=Matrix)
+[![Build Status](https://dev.azure.com/teamkodi/binary-addons/_apis/build/status/xbmc.audiodecoder.wsr?branchName=Matrix)](https://dev.azure.com/teamkodi/binary-addons/_build/latest?definitionId=20&branchName=Matrix)
+<!--- [![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/audiodecoder.wsr?branch=Matrix&svg=true)](https://ci.appveyor.com/project/xbmc/audiodecoder-wsr?branch=Matrix) -->
 
 ## Build instructions
 
