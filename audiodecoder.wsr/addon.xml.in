@@ -12,8 +12,8 @@
     tracks="true"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">WonderSwan R Audio Decoder</summary>
-    <description lang="en">WonderSwan R (WSR) is a container format, that holds audio code ripped from the ROMs of games for the WonderSwan and WonderSwan Color handheld game system. Both the original and color versions used the same audio chip which could handle 4 PCM audio channels.</description>
+    <summary lang="en_GB">WonderSwan R Audio Decoder</summary>
+    <description lang="en_GB">WonderSwan R (WSR) is a container format, that holds audio code ripped from the ROMs of games for the WonderSwan and WonderSwan Color handheld game system. Both the original and color versions used the same audio chip which could handle 4 PCM audio channels.</description>
     <platform>@PLATFORM@</platform>
     <license>GPL-2.0-or-later</license>
     <source>https://github.com/xbmc/audiodecoder.wsr</source>
