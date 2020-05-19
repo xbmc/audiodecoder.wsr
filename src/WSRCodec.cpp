@@ -30,11 +30,11 @@ struct WSRContext
 class CMyAddon;
 
 class CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
-                  private CDllHelper
+                  private kodi::tools::CDllHelper
 {
 public:
-  CWSRCodec(KODI_HANDLE instance) :
-    CInstanceAudioDecoder(instance)
+  CWSRCodec(KODI_HANDLE instance, const std::string& version) :
+    CInstanceAudioDecoder(instance, version)
   {
   }
 
@@ -183,9 +183,9 @@ class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() = default;
-  ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(int instanceType, const std::string& instanceID, KODI_HANDLE instance, const std::string& version, KODI_HANDLE& addonInstance) override
   {
-    addonInstance = new CWSRCodec(instance);
+    addonInstance = new CWSRCodec(instance, version);
     return ADDON_STATUS_OK;
   }
   virtual ~CMyAddon() = default;
