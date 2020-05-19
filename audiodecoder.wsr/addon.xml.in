@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="audiodecoder.wsr"
-  version="2.1.3"
+  version="2.2.0"
   name="WSR Audio Decoder"
   provider-name="spiff">
   <requires>@ADDON_DEPENDS@</requires>
