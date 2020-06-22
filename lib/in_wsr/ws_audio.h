@@ -10,6 +10,6 @@ void ws_audio_port_write(BYTE port,BYTE value);
 BYTE ws_audio_port_read(BYTE port);
 void ws_audio_process(void);
 void ws_audio_sounddma(void);
-int WaveAdrs;
+extern int WaveAdrs;
 
 #endif
