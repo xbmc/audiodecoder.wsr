@@ -7,7 +7,7 @@ find_package(Kodi REQUIRED)
 
 include(ExternalProject)
 
-include_directories(${PROJECT_SOURCE_DIR}/lib # Do this first for override of <kodi/tools/DllHelper.h> with own (until kodi itself is changed to)
+include_directories(${PROJECT_SOURCE_DIR}/lib
                     ${KODI_INCLUDE_DIR}/..)
 
 add_subdirectory(lib/in_wsr)
