@@ -13,6 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR}/lib
 add_subdirectory(lib/in_wsr)
 
 set(WSR_SOURCES src/WSRCodec.cpp)
+set(WSR_HEADERS src/WSRCodec.h)
 
 add_definitions(-DLIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
                 -DLIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
