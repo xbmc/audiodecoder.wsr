@@ -20,7 +20,7 @@ extern "C" {
 #include <memory.h>
 }
 
-struct WSRContext
+struct ATTRIBUTE_HIDDEN WSRContext
 {
   short sample_buffer[576*2];
   size_t pos;
@@ -29,8 +29,8 @@ struct WSRContext
 
 class CMyAddon;
 
-class CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
-                  private kodi::tools::CDllHelper
+class ATTRIBUTE_HIDDEN CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
+                                   private kodi::tools::CDllHelper
 {
 public:
   CWSRCodec(KODI_HANDLE instance, const std::string& version) :
@@ -43,8 +43,8 @@ public:
   bool Init(const std::string& filename, unsigned int filecache,
             int& channels, int& samplerate,
             int& bitspersample, int64_t& totaltime,
-            int& bitrate, AEDataFormat& format,
-            std::vector<AEChannel>& channellist) override
+            int& bitrate, AudioEngineDataFormat& format,
+            std::vector<AudioEngineChannel>& channellist) override
   {
     m_usedLib = !m_usedLib;
     std::string source = kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_") + std::to_string(m_usedLib) + LIBRARY_SUFFIX);
@@ -80,8 +80,8 @@ public:
     if (!Load_WSR(toLoad.c_str()))
       return false;
 
-    format = AE_FMT_S16NE;
-    channellist = { AE_CH_FL, AE_CH_FR };
+    format = AUDIOENGINE_FMT_S16NE;
+    channellist = { AUDIOENGINE_CH_FL, AUDIOENGINE_CH_FR };
     channels = 2;
     bitspersample = 16;
     samplerate = 48000;
