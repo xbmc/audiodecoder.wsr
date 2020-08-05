@@ -7,12 +7,13 @@ find_package(Kodi REQUIRED)
 
 include(ExternalProject)
 
-include_directories(${PROJECT_SOURCE_DIR}/lib # Do this first for override of <kodi/tools/DllHelper.h> with own (until kodi itself is changed to)
+include_directories(${PROJECT_SOURCE_DIR}/lib
                     ${KODI_INCLUDE_DIR}/..)
 
 add_subdirectory(lib/in_wsr)
 
 set(WSR_SOURCES src/WSRCodec.cpp)
+set(WSR_HEADERS src/WSRCodec.h)
 
 add_definitions(-DLIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
                 -DLIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
