@@ -45,7 +45,7 @@ BYTE cpu_readmem20(DWORD addr)
 {
 	uint32	offset = addr&0xffff;
 	uint32	bank = (addr>>16)&0xf;
-	int romBank;
+	uint32 romBank;
 
 	switch (bank)
 	{

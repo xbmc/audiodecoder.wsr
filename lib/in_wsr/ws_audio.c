@@ -5,7 +5,12 @@
 #include "ws_io.h"
 #include "ws_audio.h"
 #include "wsr_player.h"
-#include <memory.h>
+
+#include <string.h>
+
+//variables from ws_player.c
+extern int SampleRate;
+extern unsigned int ChannelMuting;
 
 #define SNDP	ws_ioRam[0x80]
 #define SNDV	ws_ioRam[0x88]
@@ -62,7 +67,7 @@ static int NoiseRng;
 static int MainVolume;
 static int PCMVolumeLeft;
 static int PCMVolumeRight;
-int WaveAdrs;
+unsigned long WaveAdrs;
 
 void ws_audio_init(void)
 {
@@ -97,11 +102,14 @@ void ws_audio_update(short *buffer, int length)
 		{
 			if ((ch==1) && (SNDMOD&0x20))
 			{
-				// Voice出力
-				w = ws_ioRam[0x89];
-				w -= 0x80;
-				l += PCMVolumeLeft  * w;
-				r += PCMVolumeRight * w;
+				if (!(ChannelMuting & (1 << ch)))
+				{
+					// Voice出力
+					w = ws_ioRam[0x89];
+					w -= 0x80;
+					l += PCMVolumeLeft  * w;
+					r += PCMVolumeRight * w;
+				}
 			}
 			else if (SNDMOD&(1<<ch))
 			{
@@ -162,9 +170,12 @@ void ws_audio_update(short *buffer, int length)
 					PCSRL = (BYTE)(NoiseRng&0xff);
 					PCSRH = (BYTE)((NoiseRng>>8)&0x7f);
 
-					w = (NoiseRng&1)? 0x7f:-0x80;
-					l += ws_audio[ch].lvol * w;
-					r += ws_audio[ch].rvol * w;
+					if (!(ChannelMuting & (1 << ch)))
+					{
+						w = (NoiseRng & 1) ? 0x7f : -0x80;
+						l += ws_audio[ch].lvol * w;
+						r += ws_audio[ch].rvol * w;
+					}
 				}
 				else
 				{
@@ -179,8 +190,11 @@ void ws_audio_update(short *buffer, int length)
 					else
 						w = w&0xf0;			//上位ニブル
 					w -= 0x80;
-					l += ws_audio[ch].lvol * w;
-					r += ws_audio[ch].rvol * w;
+					if (!(ChannelMuting & (1 << ch)))
+					{
+						l += ws_audio[ch].lvol * w;
+						r += ws_audio[ch].rvol * w;
+					}
 				}
 			}
 		}
