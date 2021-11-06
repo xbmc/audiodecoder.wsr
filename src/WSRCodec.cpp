@@ -50,19 +50,11 @@ bool CWSRCodec::Init(const std::string& filename,
   ctx.timepos = 0;
 
   int track = 0;
-  std::string toLoad(filename);
-  if (toLoad.find(".wsrstream") != std::string::npos)
-  {
-    size_t iStart = toLoad.rfind('-') + 1;
-    track = atoi(toLoad.substr(iStart, toLoad.size() - iStart - 10).c_str()) - 1;
-    //  The directory we are in, is the file
-    //  that contains the bitstream to play,
-    //  so extract it
-    size_t slash = toLoad.rfind('\\');
-    if (slash == std::string::npos)
-      slash = toLoad.rfind('/');
-    toLoad = toLoad.substr(0, slash);
-  }
+  const std::string toLoad = kodi::addon::CInstanceAudioDecoder::GetTrack("wsr", filename, track);
+
+  // Correct if packed sound file with several sounds
+  if (track > 0)
+    --track;
 
   if (!Load_WSR(toLoad.c_str()))
     return false;
@@ -79,10 +71,10 @@ bool CWSRCodec::Init(const std::string& filename,
   return true;
 }
 
-int CWSRCodec::CWSRCodec::ReadPCM(uint8_t* buffer, int size, int& actualsize)
+int CWSRCodec::CWSRCodec::ReadPCM(uint8_t* buffer, size_t size, size_t& actualsize)
 {
   if (ctx.timepos >= 5 * 60 * 48000 * 2)
-    return 1;
+    return AUDIODECODER_READ_EOF;
 
   if (ctx.pos == 576 * 2)
   {
@@ -97,7 +89,7 @@ int CWSRCodec::CWSRCodec::ReadPCM(uint8_t* buffer, int size, int& actualsize)
   ctx.timepos += tocopy / 2;
   actualsize = tocopy;
 
-  return 0;
+  return AUDIODECODER_READ_SUCCESS;
 }
 
 int64_t CWSRCodec::Seek(int64_t time)
@@ -107,9 +99,6 @@ int64_t CWSRCodec::Seek(int64_t time)
 
 int CWSRCodec::TrackCount(const std::string& fileName)
 {
-  if (fileName.find(".wsrstream") != std::string::npos)
-    return 0;
-
   std::string source =
       kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
 
@@ -154,7 +143,7 @@ int CWSRCodec::Load_WSR(const char* name)
 
 //------------------------------------------------------------------------------
 
-class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
+class ATTR_DLL_LOCAL CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() = default;

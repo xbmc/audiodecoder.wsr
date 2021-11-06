@@ -20,7 +20,7 @@ extern "C"
 #include <stdio.h>
 }
 
-struct ATTRIBUTE_HIDDEN WSRContext
+struct ATTR_DLL_LOCAL WSRContext
 {
   short sample_buffer[576 * 2];
   size_t pos;
@@ -28,7 +28,7 @@ struct ATTRIBUTE_HIDDEN WSRContext
 };
 
 
-class ATTRIBUTE_HIDDEN CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
+class ATTR_DLL_LOCAL CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
                                    private kodi::tools::CDllHelper
 {
 public:
@@ -44,7 +44,7 @@ public:
             int& bitrate,
             AudioEngineDataFormat& format,
             std::vector<AudioEngineChannel>& channellist) override;
-  int ReadPCM(uint8_t* buffer, int size, int& actualsize) override;
+  int ReadPCM(uint8_t* buffer, size_t size, size_t& actualsize) override;
   int64_t Seek(int64_t time) override;
   int TrackCount(const std::string& fileName) override;
 

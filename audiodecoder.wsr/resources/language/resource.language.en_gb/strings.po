@@ -23,3 +23,9 @@ msgstr ""
 msgctxt "Addon Description"
 msgid "WonderSwan R (WSR) is a container format, that holds audio code ripped from the ROMs of games for the WonderSwan and WonderSwan Color handheld game system. Both the original and color versions used the same audio chip which could handle 4 PCM audio channels."
 msgstr ""
+
+#. Supported file extension description about ".wsr"
+#: audiodecoder.wsr/addon.xml.in
+msgctxt "#30100"
+msgid "The wsr file extension is associated with the Bandai WonderSwan handheld video gaming console."
+msgstr ""
