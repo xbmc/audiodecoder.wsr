@@ -7,21 +7,25 @@
 #include "ws_audio.h"
 #include "wsr_player.h"
 #include <stdlib.h>
+#include <string.h>
 
 short* sample_buffer;
 
+short* sample_buffer = NULL;
 int SampleRate = 48000;
+const unsigned int WS_Cpu_Clock = 3072000;
+unsigned int ChannelMuting = 0;
 
 BYTE *ROM = NULL;
 int ROMSize;
 int ROMBank;
 
-int Get_FirstSong(void)
+int mul_div(int number, int numerator, int denominator)
 {
-	if (ROM == NULL || ROMSize < 0x20)
-		return 0;
-
-	return (unsigned)ROM[ROMSize-0x20+5];
+	long long ret = number;
+	ret *= numerator;
+	ret /= denominator;
+	return (int) ret;
 }
 
 void Init_WSR(void)
@@ -31,7 +35,60 @@ void Init_WSR(void)
 	ws_audio_init();
 }
 
-void Reset_WSR(int SongNo)
+int Load_WSR(const void* pFile, unsigned Size)
+{
+	if (Size <= 0x20 || pFile == NULL) return 0;
+
+	ROMSize = Size;
+	ROMBank = (ROMSize + 0xFFFF) >> 16;
+
+	if (ROM) { free(ROM); ROM = NULL; }
+	ROM = malloc(ROMBank * 0x10000);
+	if (!ROM) return 0;
+
+	memcpy(ROM, pFile, ROMSize);
+	if (ROM[ROMSize - 0x20] != 'W' || ROM[ROMSize - 0x20 + 1] != 'S' || ROM[ROMSize - 0x20 + 2] != 'R' || ROM[ROMSize - 0x20 + 3] != 'F')
+	{
+		if (ROM) free(ROM);
+		ROM = NULL;
+		return 0;
+	}
+
+	Init_WSR();
+
+	return 1;
+}
+
+int Get_FirstSong(void)
+{
+	if (ROM == NULL || ROMSize < 0x20)
+		return 0;
+
+	return (unsigned)ROM[ROMSize-0x20+5];
+}
+
+unsigned Set_Frequency(unsigned int Freq)
+{
+	if (Freq > 192000 || Freq < 11025)
+		SampleRate = 44100;
+	else
+		SampleRate = Freq;
+
+	return SampleRate;
+}
+
+void Set_ChannelMuting(unsigned int Mute)
+{
+	ChannelMuting = Mute;
+}
+
+unsigned int Get_ChannelMuting(void)
+{
+	return ChannelMuting;
+}
+
+
+void Reset_WSR(unsigned SongNo)
 {
 	ws_memory_reset();
 	ws_audio_reset();
@@ -93,13 +150,20 @@ void Update_SampleData(void)
 	}
 }
 
-void Update_WSR(int Cycles, int Length)
+int Update_WSR(void* pBuf, unsigned Buflen, unsigned Samples)
 {
 	int i;
 
+	sample_buffer = (short*)(pBuf);
+	if (sample_buffer == NULL || Buflen < Samples * 2 * (16 / 8))
+	{
+		return 0;
+	}
+
+	int Cycles = mul_div(Samples, WS_Cpu_Clock, SampleRate);
 	CPU_Cycles = Cycles;
 	CPU_Count = 0;
-	Init_SampleData(Length);
+	Init_SampleData(Samples);
 
 	while (CPU_Count < Cycles)
 	{
@@ -113,6 +177,7 @@ void Update_WSR(int Cycles, int Length)
 	}
 
 	Close_SampleData();
+	return 1;
 }
 
 
@@ -237,4 +302,21 @@ int ws_timer_min(int Cycles)
 	}
 
 	return (timer);
+}
+
+static WSRPlayerApi g_wsr_player_api =
+{
+	Load_WSR,
+	Get_FirstSong,
+	Set_Frequency,
+	Set_ChannelMuting,
+	Get_ChannelMuting,
+	Reset_WSR,
+	Close_WSR,
+	Update_WSR
+};
+
+WSRPlayerApi* WSRPlayerSetUp(void)
+{
+	return &g_wsr_player_api;
 }

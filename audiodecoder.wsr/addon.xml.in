@@ -8,6 +8,7 @@
   <extension
     point="kodi.audiodecoder"
     name="wsr"
+    tags="true"
     tracks="true"
     library_@PLATFORM@="@LIBRARY_FILENAME@">
     <support>

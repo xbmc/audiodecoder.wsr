@@ -12,8 +12,12 @@ include_directories(${PROJECT_SOURCE_DIR}/lib
 
 add_subdirectory(lib/in_wsr)
 
-set(WSR_SOURCES src/WSRCodec.cpp)
-set(WSR_HEADERS src/WSRCodec.h)
+set(WSR_SOURCES src/Settings.cpp
+                src/WSRCodec.cpp
+                src/extended_m3u_playlist.cpp)
+set(WSR_HEADERS src/Settings.h
+                src/WSRCodec.h
+                src/extended_m3u_playlist.h)
 
 add_definitions(-DLIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
                 -DLIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
