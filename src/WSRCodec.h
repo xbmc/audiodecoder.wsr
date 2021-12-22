@@ -26,7 +26,7 @@ class ATTR_DLL_LOCAL CWSRCodec : public kodi::addon::CInstanceAudioDecoder,
                                  private kodi::tools::CDllHelper
 {
 public:
-  CWSRCodec(KODI_HANDLE instance, const std::string& version);
+  CWSRCodec(const kodi::addon::IInstanceInfo& instance);
   virtual ~CWSRCodec() = default;
 
   bool Init(const std::string& filename,
