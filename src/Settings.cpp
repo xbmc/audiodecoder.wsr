@@ -11,28 +11,28 @@
 
 bool CWSRSettings::Load()
 {
-  m_playInfinitely = kodi::GetSettingBoolean("playInfinitely", false);
-  m_defaultSongLength = kodi::GetSettingInt("defaultlength", 300) * 1000;
-  m_defaultFadeLength = kodi::GetSettingInt("defaultfade", 5000);
-  m_defaultLoopCount = kodi::GetSettingInt("loopcount", -1);
-  m_detectSilence = kodi::GetSettingBoolean("detectsilence", true);
-  m_silenceLength = kodi::GetSettingInt("silenceseconds", 5);
-  m_ignorePlaylist = kodi::GetSettingBoolean("ignoreplaylist", false);
-  m_volume = kodi::GetSettingInt("volume", 100);
-  m_defaultSubsongMax = kodi::GetSettingInt("subsongmax", 255);
-  m_displayTrackNum = kodi::GetSettingBoolean("displaytracknumber", true);
+  m_playInfinitely = kodi::addon::GetSettingBoolean("playInfinitely", false);
+  m_defaultSongLength = kodi::addon::GetSettingInt("defaultlength", 300) * 1000;
+  m_defaultFadeLength = kodi::addon::GetSettingInt("defaultfade", 5000);
+  m_defaultLoopCount = kodi::addon::GetSettingInt("loopcount", -1);
+  m_detectSilence = kodi::addon::GetSettingBoolean("detectsilence", true);
+  m_silenceLength = kodi::addon::GetSettingInt("silenceseconds", 5);
+  m_ignorePlaylist = kodi::addon::GetSettingBoolean("ignoreplaylist", false);
+  m_volume = kodi::addon::GetSettingInt("volume", 100);
+  m_defaultSubsongMax = kodi::addon::GetSettingInt("subsongmax", 255);
+  m_displayTrackNum = kodi::addon::GetSettingBoolean("displaytracknumber", true);
   m_channelMuting = 0;
-  m_channelMuting |= kodi::GetSettingBoolean("channelmuting1", false) ? (1 << 0) : 0;
-  m_channelMuting |= kodi::GetSettingBoolean("channelmuting2", false) ? (1 << 1) : 0;
-  m_channelMuting |= kodi::GetSettingBoolean("channelmuting3", false) ? (1 << 2) : 0;
-  m_channelMuting |= kodi::GetSettingBoolean("channelmuting4", false) ? (1 << 3) : 0;
-  m_sampleRate = kodi::GetSettingInt("samplerate", 5000);
+  m_channelMuting |= kodi::addon::GetSettingBoolean("channelmuting1", false) ? (1 << 0) : 0;
+  m_channelMuting |= kodi::addon::GetSettingBoolean("channelmuting2", false) ? (1 << 1) : 0;
+  m_channelMuting |= kodi::addon::GetSettingBoolean("channelmuting3", false) ? (1 << 2) : 0;
+  m_channelMuting |= kodi::addon::GetSettingBoolean("channelmuting4", false) ? (1 << 3) : 0;
+  m_sampleRate = kodi::addon::GetSettingInt("samplerate", 5000);
 
   return true;
 }
 
 bool CWSRSettings::SetSetting(const std::string& settingName,
-                              const kodi::CSettingValue& settingValue)
+                              const kodi::addon::CSettingValue& settingValue)
 {
   if (settingName == "playInfinitely")
   {

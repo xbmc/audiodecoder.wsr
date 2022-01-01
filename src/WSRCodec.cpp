@@ -11,6 +11,7 @@
  */
 
 #include "WSRCodec.h"
+
 #include "Settings.h"
 
 #include <algorithm>
@@ -30,8 +31,7 @@ static const double ws_vblank = 75.47; //WonderSwan's VBlank. 159*256/3072000 Hz
 
 typedef signed short wsr_sample_t;
 
-CWSRCodec::CWSRCodec(KODI_HANDLE instance, const std::string& version)
-  : CInstanceAudioDecoder(instance, version)
+CWSRCodec::CWSRCodec(const kodi::addon::IInstanceInfo& instance) : CInstanceAudioDecoder(instance)
 {
 }
 
@@ -48,8 +48,8 @@ bool CWSRCodec::Init(const std::string& filename,
   if (!m_wsrPlayerApi)
   {
     m_usedLib = !m_usedLib;
-    std::string source = kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_") +
-                                            std::to_string(m_usedLib) + LIBRARY_SUFFIX);
+    std::string source = kodi::addon::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_") +
+                                                   std::to_string(m_usedLib) + LIBRARY_SUFFIX);
     if (!LoadDll(source))
       return -1;
     if (!REGISTER_DLL_SYMBOL(WSRPlayerSetUp))
@@ -314,7 +314,7 @@ bool CWSRCodec::ReadTag(const std::string& filename, kodi::addon::AudioDecoderIn
   if (!m_wsrPlayerApi)
   {
     std::string source =
-        kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
+        kodi::addon::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
 
     if (!LoadDll(source))
       return -1;
@@ -480,7 +480,7 @@ int CWSRCodec::TrackCount(const std::string& fileName)
   if (!m_wsrPlayerApi)
   {
     std::string source =
-        kodi::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
+        kodi::addon::GetAddonPath(LIBRARY_PREFIX + std::string("in_wsr_track") + LIBRARY_SUFFIX);
 
     if (!LoadDll(source))
       return -1;
@@ -647,19 +647,16 @@ class ATTR_DLL_LOCAL CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() { CWSRSettings::GetInstance().Load(); }
-  ADDON_STATUS CreateInstance(int instanceType,
-                              const std::string& instanceID,
-                              KODI_HANDLE instance,
-                              const std::string& version,
-                              KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(const kodi::addon::IInstanceInfo& instance,
+                              KODI_ADDON_INSTANCE_HDL& hdl) override
   {
-    addonInstance = new CWSRCodec(instance, version);
+    hdl = new CWSRCodec(instance);
     return ADDON_STATUS_OK;
   }
   virtual ~CMyAddon() = default;
 
   ADDON_STATUS SetSetting(const std::string& settingName,
-                          const kodi::CSettingValue& settingValue) override
+                          const kodi::addon::CSettingValue& settingValue) override
   {
     return CWSRSettings::GetInstance().SetSetting(settingName, settingValue) ? ADDON_STATUS_OK
                                                                              : ADDON_STATUS_UNKNOWN;

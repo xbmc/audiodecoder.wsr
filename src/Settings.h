@@ -20,7 +20,7 @@ public:
   }
 
   bool Load();
-  bool SetSetting(const std::string& settingName, const kodi::CSettingValue& settingValue);
+  bool SetSetting(const std::string& settingName, const kodi::addon::CSettingValue& settingValue);
 
   bool GetPlayInfinitely() const { return m_playInfinitely; }
   int GetDefaultSongLength() const { return m_defaultSongLength; }
