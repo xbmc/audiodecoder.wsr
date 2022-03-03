@@ -26,7 +26,7 @@
     <summary lang="ko_KR">WonderSwan R 오디오 디코더</summary>
     <summary lang="ru_RU">Аудиодекодер WonderSwan R</summary>
     <summary lang="zh_CN">WonderSwan R 音频解码器</summary>
-    <description lang="da_DK">WonderSwan R (WSR) er et containerformat, der indeholder lydkode rippet fra ROM'erne fra spil til WonderSwan og WonderSwan Color håndholdt spilsystem. Både original- og farveversionerne brugte den samme lydchip, som kunne håndtere 4 PCM-lydkanaler.</description>
+    <description lang="da_DK">WonderSwan R (WSR) er et containerformat, der indeholder lydkode rippet fra ROM&apos;erne fra spil til WonderSwan og WonderSwan Color håndholdt spilsystem. Både original- og farveversionerne brugte den samme lydchip, som kunne håndtere 4 PCM-lydkanaler.</description>
     <description lang="de_DE">WonderSwan R (WSR) ist ein Containerformat, das Audio-Code enthält, der aus den ROMs von Spielen für das WonderSwan- und WonderSwan Color-Handheld-Spielsystem gerippt wurde. Sowohl die Original- als auch die Farbversion verwendeten denselben Audio-Chip, der 4 PCM-Audiokanäle verarbeiten konnte.</description>
     <description lang="en_GB">WonderSwan R (WSR) is a container format, that holds audio code ripped from the ROMs of games for the WonderSwan and WonderSwan Color handheld game system. Both the original and color versions used the same audio chip which could handle 4 PCM audio channels.</description>
     <description lang="es_ES">WonderSwan R (WSR) es un formato contenedor que contiene el audio extraido de las ROMs de los juegos de las consolas portátiles WonderSwan y WonderSwan Color. Ambas versiones original y color usaban el mismo chip de audio que podía controlar 4 canales de audio PCM.</description>
